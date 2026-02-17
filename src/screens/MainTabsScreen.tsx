@@ -1,8 +1,18 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { BottomNavigation, Text } from 'react-native-paper';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { CommonActions } from '@react-navigation/native';
+import { BottomNavigation, Icon, Text, useTheme } from 'react-native-paper';
 import { CategoriesScreen } from './CategoriesScreen';
 import { HomeScreen } from './HomeScreen';
+
+type MainTabParamList = {
+  Beranda: undefined;
+  Kategori: undefined;
+  Tabungan: undefined;
+};
+
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const SavingsScreen = () => (
   <View style={styles.savingsContainer}>
@@ -11,46 +21,104 @@ const SavingsScreen = () => (
 );
 
 export const MainTabsScreen = () => {
-  const [index, setIndex] = useState(0);
-  const routes = useMemo(
+  const theme = useTheme();
+
+  const tabBarStyle = useMemo(
     () => [
-      { key: 'home', title: 'Beranda', focusedIcon: 'home', unfocusedIcon: 'home-outline' },
+      styles.bar,
       {
-        key: 'categories',
-        title: 'Kategori',
-        focusedIcon: 'view-grid',
-        unfocusedIcon: 'view-grid-outline',
-      },
-      {
-        key: 'savings',
-        title: 'Tabungan',
-        focusedIcon: 'piggy-bank',
-        unfocusedIcon: 'piggy-bank-outline',
+        backgroundColor: theme.colors.surface,
+        borderTopColor: theme.colors.outline,
       },
     ],
-    [],
+    [theme.colors.outline, theme.colors.surface],
   );
 
-  const renderScene = BottomNavigation.SceneMap({
-    home: HomeScreen,
-    categories: CategoriesScreen,
-    savings: SavingsScreen,
-  });
-
   return (
-    <BottomNavigation
-      navigationState={{ index, routes }}
-      onIndexChange={setIndex}
-      renderScene={renderScene}
-      labeled
-      compact={false}
-      shifting={false}
-      sceneAnimationEnabled
-      sceneAnimationType="opacity"
-      barStyle={styles.bar}
-      activeColor="#0da837"
-      inactiveColor="#8b9ab3"
-    />
+    <Tab.Navigator
+      screenOptions={{ headerShown: false, animation: 'shift' }}
+      // eslint-disable-next-line react/no-unstable-nested-components
+      tabBar={({ navigation, state, descriptors, insets }) => (
+        <BottomNavigation.Bar
+          navigationState={state}
+          safeAreaInsets={insets}
+          onTabPress={({ route, preventDefault }) => {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+
+            if (event.defaultPrevented) {
+              preventDefault();
+              return;
+            }
+
+            navigation.dispatch({
+              ...CommonActions.navigate(route.name, route.params),
+              target: state.key,
+            });
+          }}
+          renderIcon={({ route, focused, color }) =>
+            descriptors[route.key].options.tabBarIcon?.({
+              focused,
+              color,
+              size: 24,
+            }) ?? null
+          }
+          getLabelText={({ route }) => {
+            return descriptors[route.key].options.title ?? route.name;
+          }}
+          style={tabBarStyle}
+          activeColor={theme.colors.primary}
+          inactiveColor={theme.colors.onSurfaceVariant}
+          activeIndicatorStyle={styles.activeIndicator}
+        />
+      )}
+    >
+      <Tab.Screen
+        name="Beranda"
+        component={HomeScreen}
+        options={{
+          // eslint-disable-next-line react/no-unstable-nested-components
+          tabBarIcon: ({ color, focused, size }) => (
+            <Icon
+              source={focused ? 'home' : 'home-outline'}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Kategori"
+        component={CategoriesScreen}
+        options={{
+          // eslint-disable-next-line react/no-unstable-nested-components
+          tabBarIcon: ({ color, focused, size }) => (
+            <Icon
+              source={focused ? 'view-grid' : 'view-grid-outline'}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Tabungan"
+        component={SavingsScreen}
+        options={{
+          // eslint-disable-next-line react/no-unstable-nested-components
+          tabBarIcon: ({ color, focused, size }) => (
+            <Icon
+              source={focused ? 'bullseye-arrow' : 'bullseye-arrow'}
+              size={size}
+              color={color}
+            />
+          ),
+        }}
+      />
+    </Tab.Navigator>
   );
 };
 
@@ -61,5 +129,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#f6f6f6',
   },
-  bar: { backgroundColor: '#ffffff' },
+  bar: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  activeIndicator: {
+    borderRadius: 18,
+  },
 });
