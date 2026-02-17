@@ -43,7 +43,8 @@ export const createTable = async (): Promise<void> => {
       category_id INTEGER,
       amount INTEGER,
       date TEXT,
-      type TEXT NOT NULL DEFAULT 'OUT'
+      type TEXT NOT NULL DEFAULT 'OUT',
+      description TEXT
     );`,
   );
 
@@ -70,6 +71,17 @@ export const createTable = async (): Promise<void> => {
 
   if (!hasCategoryIdColumn) {
     await db.executeSql('ALTER TABLE transactions ADD COLUMN category_id INTEGER');
+  }
+
+  const hasDescriptionColumn = Array.from({ length: info[0].rows.length }).some(
+    (_, index) => {
+      const row = info[0].rows.item(index) as { name: string };
+      return row.name === 'description';
+    },
+  );
+
+  if (!hasDescriptionColumn) {
+    await db.executeSql('ALTER TABLE transactions ADD COLUMN description TEXT');
   }
 
   await db.executeSql(
@@ -112,7 +124,8 @@ export const getTransactions = async (): Promise<Transaction[]> => {
       COALESCE(c.name, t.category, 'Tanpa Kategori') AS category,
       t.amount,
       t.date,
-      COALESCE(t.type, 'OUT') AS type
+      COALESCE(t.type, 'OUT') AS type,
+      COALESCE(t.description, '') AS description
     FROM transactions t
     LEFT JOIN categories c ON c.id = t.category_id
     ORDER BY t.id DESC`,
@@ -133,13 +146,15 @@ export const saveTransaction = async (
   amount: number,
   type: TransactionType = 'OUT',
   dateIso?: string,
+  description?: string,
 ): Promise<void> => {
   const db = await getDBConnection();
   const date = dateIso ?? dayjs().toISOString();
+  const note = description?.trim() ?? '';
 
   await db.executeSql(
-    'INSERT INTO transactions (category_id, amount, date, type) VALUES (?, ?, ?, ?)',
-    [categoryId, amount, date, type],
+    'INSERT INTO transactions (category_id, amount, date, type, description) VALUES (?, ?, ?, ?, ?)',
+    [categoryId, amount, date, type, note],
   );
 };
 

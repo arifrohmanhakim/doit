@@ -14,6 +14,7 @@ type TransactionDialogsProps = {
   selectedCategoryName: string;
   amountInput: string;
   expenseDateInput: string;
+  expenseDescriptionInput: string;
   onDismissAll: () => void;
   onChangeSearch: (value: string) => void;
   onSelectCategory: (category: Category) => void;
@@ -22,6 +23,7 @@ type TransactionDialogsProps = {
   onSubmitCustomCategory: () => void;
   onChangeAmount: (value: string) => void;
   onChangeExpenseDate: (value: string) => void;
+  onChangeExpenseDescription: (value: string) => void;
   onSubmitAmount: () => void;
 };
 
@@ -36,6 +38,7 @@ export const TransactionDialogs = ({
   selectedCategoryName,
   amountInput,
   expenseDateInput,
+  expenseDescriptionInput,
   onDismissAll,
   onChangeSearch,
   onSelectCategory,
@@ -44,6 +47,7 @@ export const TransactionDialogs = ({
   onSubmitCustomCategory,
   onChangeAmount,
   onChangeExpenseDate,
+  onChangeExpenseDescription,
   onSubmitAmount,
 }: TransactionDialogsProps) => (
   <Portal>
@@ -90,7 +94,9 @@ export const TransactionDialogs = ({
       </Dialog.Title>
       <Dialog.Content>
         {activeType === 'OUT' ? (
-          <Text style={styles.selectedCategoryText}>Kategori: {selectedCategoryName}</Text>
+          <Text variant="bodyMedium" style={styles.selectedCategoryText}>
+            Kategori: {selectedCategoryName}
+          </Text>
         ) : null}
         <TextInput
           label="Nominal (Rp)"
@@ -108,6 +114,16 @@ export const TransactionDialogs = ({
             onChangeText={onChangeExpenseDate}
             style={styles.expenseDateInput}
             left={<TextInput.Icon icon="calendar-clock" />}
+          />
+        ) : null}
+        {activeType === 'OUT' ? (
+          <TextInput
+            label="Keterangan (contoh: jajan es kopi)"
+            mode="outlined"
+            value={expenseDescriptionInput}
+            onChangeText={onChangeExpenseDescription}
+            style={styles.expenseDateInput}
+            left={<TextInput.Icon icon="text-box-outline" />}
           />
         ) : null}
       </Dialog.Content>

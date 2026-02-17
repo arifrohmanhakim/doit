@@ -27,8 +27,12 @@ export const SummaryCard = ({ balance, totalIn, totalOut }: SummaryCardProps) =>
             color="#0f9f65"
           />
           <View>
-            <Text style={styles.summaryItemLabel}>PEMASUKAN</Text>
-            <Text style={styles.summaryIn}>+Rp {totalIn.toLocaleString('id-ID')}</Text>
+            <Text variant="labelMedium" style={styles.summaryItemLabel}>
+              PEMASUKAN
+            </Text>
+            <Text variant="titleMedium" style={styles.summaryIn}>
+              +Rp {totalIn.toLocaleString('id-ID')}
+            </Text>
           </View>
         </View>
         <View style={styles.summaryItem}>
@@ -39,8 +43,12 @@ export const SummaryCard = ({ balance, totalIn, totalOut }: SummaryCardProps) =>
             color="#ef3d5b"
           />
           <View>
-            <Text style={styles.summaryItemLabel}>PENGELUARAN</Text>
-            <Text style={styles.summaryOut}>-Rp {totalOut.toLocaleString('id-ID')}</Text>
+            <Text variant="labelMedium" style={styles.summaryItemLabel}>
+              PENGELUARAN
+            </Text>
+            <Text variant="titleMedium" style={styles.summaryOut}>
+              -Rp {totalOut.toLocaleString('id-ID')}
+            </Text>
           </View>
         </View>
       </View>

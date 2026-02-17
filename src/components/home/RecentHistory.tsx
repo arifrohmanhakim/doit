@@ -52,7 +52,9 @@ export const RecentHistory = ({
     {groupedHistory.map(group => (
       <View key={group.title} style={styles.groupBlock}>
         <View style={styles.groupTitleRow}>
-          <Text style={styles.groupTitle}>{group.title}</Text>
+          <Text variant="labelLarge" style={styles.groupTitle}>
+            {group.title}
+          </Text>
           <Divider style={styles.groupDivider} />
         </View>
         {group.data.map(item => {
@@ -69,14 +71,18 @@ export const RecentHistory = ({
                     color={iconData.iconColor}
                   />
                   <View style={styles.transactionTextWrap}>
-                    <Text style={styles.transactionTitle}>{item.category}</Text>
-                    <Text style={styles.transactionMeta}>
+                    <Text variant="titleMedium" style={styles.transactionTitle}>
+                      {item.category}
+                    </Text>
+                    <Text variant="bodyMedium" style={styles.transactionMeta}>
                       {date.isValid() ? date.format('HH:mm') : '--:--'} •{' '}
-                      {item.type === 'IN' ? 'Pemasukan' : 'Pengeluaran'}
+                      {item.description?.trim() ||
+                        (item.type === 'IN' ? 'Pemasukan' : 'Pengeluaran')}
                     </Text>
                   </View>
                 </View>
                 <Text
+                  variant="titleMedium"
                   style={[
                     styles.transactionAmount,
                     item.type === 'IN' ? styles.amountIn : styles.amountOut,

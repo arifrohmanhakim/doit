@@ -15,13 +15,18 @@ export const TransactionListItem = ({
 }: TransactionListItemProps) => (
   <List.Item
     title={item.category}
-    description={formatTransactionDateTime(item.date)}
+    description={
+      item.description?.trim()
+        ? `${formatTransactionDateTime(item.date)} • ${item.description}`
+        : formatTransactionDateTime(item.date)
+    }
     // eslint-disable-next-line react/no-unstable-nested-components
     left={props => <List.Icon {...props} icon="wallet-outline" />}
     // eslint-disable-next-line react/no-unstable-nested-components
     right={() => (
       <View style={styles.itemRight}>
         <Text
+          variant="titleSmall"
           style={[
             styles.itemAmount,
             item.type === 'IN' ? styles.itemAmountIn : styles.itemAmountOut,

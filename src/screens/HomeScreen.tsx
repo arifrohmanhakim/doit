@@ -35,6 +35,7 @@ export const HomeScreen = () => {
   const [expenseDateInput, setExpenseDateInput] = useState(
     dayjs().format('YYYY-MM-DD HH:mm'),
   );
+  const [expenseDescriptionInput, setExpenseDescriptionInput] = useState('');
   const [searchText, setSearchText] = useState('');
   const [customCategoryInput, setCustomCategoryInput] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
@@ -120,6 +121,7 @@ export const HomeScreen = () => {
     setActiveType(null);
     setAmountInput('');
     setExpenseDateInput(dayjs().format('YYYY-MM-DD HH:mm'));
+    setExpenseDescriptionInput('');
     setSearchText('');
     setCustomCategoryInput('');
     setSelectedCategoryId(null);
@@ -200,6 +202,7 @@ export const HomeScreen = () => {
         parsedAmount,
         'OUT',
         parsedDate.toISOString(),
+        expenseDescriptionInput,
       );
     }
 
@@ -259,6 +262,7 @@ export const HomeScreen = () => {
         selectedCategoryName={selectedCategoryName}
         amountInput={amountInput}
         expenseDateInput={expenseDateInput}
+        expenseDescriptionInput={expenseDescriptionInput}
         onDismissAll={resetFlowState}
         onChangeSearch={setSearchText}
         onSelectCategory={handleSelectCategory}
@@ -267,6 +271,7 @@ export const HomeScreen = () => {
         onSubmitCustomCategory={handleSubmitCustomCategory}
         onChangeAmount={setAmountInput}
         onChangeExpenseDate={setExpenseDateInput}
+        onChangeExpenseDescription={setExpenseDescriptionInput}
         onSubmitAmount={handleSubmitAmount}
       />
     </View>
