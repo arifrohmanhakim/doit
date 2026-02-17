@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import dayjs from 'dayjs';
 import {
+  Avatar,
   Button,
   Card,
   Dialog,
@@ -13,13 +15,11 @@ import {
   Text,
   TextInput,
 } from 'react-native-paper';
-import { TransactionListItem } from '../components/TransactionListItem';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import {
   addBalance,
   createCategory,
   createTable,
-  deleteTransaction,
   getBalance,
   getCategories,
   getTransactions,
@@ -27,11 +27,26 @@ import {
 } from '../services/database';
 import { Category } from '../types/category';
 import { Transaction } from '../types/transaction';
+import { parseTransactionDate } from '../utils/date';
 
-type HomeNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+const mapCategoryStyle = (name: string) => {
+  const value = name.toLowerCase();
+  if (value.includes('makan') || value.includes('jajan')) {
+    return { icon: 'food-fork-drink', bg: '#fff1e8', iconColor: '#ff7a2f' };
+  }
+  if (value.includes('gaji') || value.includes('masuk')) {
+    return { icon: 'cash-multiple', bg: '#e8f9ef', iconColor: '#15a56f' };
+  }
+  if (value.includes('transport') || value.includes('bensin')) {
+    return { icon: 'car', bg: '#e8efff', iconColor: '#4b7bec' };
+  }
+  return { icon: 'shopping', bg: '#f2eafe', iconColor: '#8f56e9' };
+};
 
 export const HomeScreen = () => {
-  const navigation = useNavigation<HomeNavigationProp>();
+  const navigation = useNavigation<NavigationProp>();
   const [activeType, setActiveType] = useState<'IN' | 'OUT' | null>(null);
   const [amountInput, setAmountInput] = useState('');
   const [searchText, setSearchText] = useState('');
@@ -48,55 +63,66 @@ export const HomeScreen = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [balance, setBalance] = useState(0);
 
-  const total = useMemo(
+  const totalIn = useMemo(
     () =>
-      history.reduce(
-        (acc, curr) => (curr.type === 'OUT' ? acc + curr.amount : acc),
-        0,
-      ),
+      history.reduce((acc, curr) => (curr.type === 'IN' ? acc + curr.amount : acc), 0),
     [history],
   );
-  const remainingMoney = useMemo(() => balance - total, [balance, total]);
+  const totalOut = useMemo(
+    () =>
+      history.reduce((acc, curr) => (curr.type === 'OUT' ? acc + curr.amount : acc), 0),
+    [history],
+  );
   const latestTransactions = useMemo(() => history.slice(0, 10), [history]);
 
+  const groupedHistory = useMemo(() => {
+    const today: Transaction[] = [];
+    const yesterday: Transaction[] = [];
+    const thisWeek: Transaction[] = [];
+    const older: Transaction[] = [];
+
+    const now = dayjs();
+
+    latestTransactions.forEach(item => {
+      const date = parseTransactionDate(item.date);
+      if (!date.isValid()) {
+        older.push(item);
+        return;
+      }
+      if (date.isSame(now, 'day')) {
+        today.push(item);
+      } else if (date.isSame(now.subtract(1, 'day'), 'day')) {
+        yesterday.push(item);
+      } else if (date.isSame(now, 'week')) {
+        thisWeek.push(item);
+      } else {
+        older.push(item);
+      }
+    });
+
+    return [
+      { title: 'HARI INI', data: today },
+      { title: 'KEMARIN', data: yesterday },
+      { title: 'MINGGU INI', data: thisWeek },
+      { title: 'LAINNYA', data: older },
+    ].filter(group => group.data.length > 0);
+  }, [latestTransactions]);
+
   const loadData = useCallback(async () => {
-    try {
-      await createTable();
-      const [data, categoryData, currentBalance] = await Promise.all([
-        getTransactions(),
-        getCategories(),
-        getBalance(),
-      ]);
-      setHistory(data);
-      setCategories(categoryData);
-      setBalance(currentBalance);
-    } catch (error) {
-      console.error(error);
-    }
+    await createTable();
+    const [data, categoryData, currentBalance] = await Promise.all([
+      getTransactions(),
+      getCategories(),
+      getBalance(),
+    ]);
+    setHistory(data);
+    setCategories(categoryData);
+    setBalance(currentBalance);
   }, []);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', loadData);
     loadData();
-    return unsubscribe;
-  }, [loadData, navigation]);
-
-  const handleDelete = (id: number) => {
-    Alert.alert('Hapus Catatan', 'Yakin ingin menghapus?', [
-      { text: 'Batal', style: 'cancel' },
-      {
-        text: 'Hapus',
-        onPress: async () => {
-          const transaction = history.find(item => item.id === id);
-          if (transaction?.type === 'IN') {
-            await addBalance(-transaction.amount);
-          }
-          await deleteTransaction(id);
-          await loadData();
-        },
-      },
-    ]);
-  };
+  }, [loadData]);
 
   const resetFlowState = () => {
     setActiveType(null);
@@ -112,25 +138,22 @@ export const HomeScreen = () => {
 
   const openInFlow = () => {
     setActiveType('IN');
-    setSelectedCategoryId(null);
     setSelectedCategoryName('Uang Masuk');
-    setAmountInput('');
+    setSelectedCategoryId(null);
     setIsAmountDialogVisible(true);
   };
 
   const openOutFlow = () => {
     setActiveType('OUT');
-    setSelectedCategoryId(null);
     setSelectedCategoryName('');
-    setSearchText('');
+    setSelectedCategoryId(null);
     setIsCategoryDialogVisible(true);
   };
 
   const handleSelectCategory = (category: Category) => {
-    setIsCategoryDialogVisible(false);
     setSelectedCategoryId(category.id);
     setSelectedCategoryName(category.name);
-    setAmountInput('');
+    setIsCategoryDialogVisible(false);
     setIsAmountDialogVisible(true);
   };
 
@@ -139,20 +162,18 @@ export const HomeScreen = () => {
     if (!trimmedCategory) {
       return;
     }
-
     const categoryId = await createCategory(trimmedCategory);
     setSelectedCategoryId(categoryId);
     setSelectedCategoryName(trimmedCategory);
     setIsCustomCategoryDialogVisible(false);
-    setAmountInput('');
     setIsAmountDialogVisible(true);
-    const latestCategories = await getCategories();
-    setCategories(latestCategories);
+    const data = await getCategories();
+    setCategories(data);
   };
 
   const handleSubmitAmount = async () => {
     const parsedAmount = Number.parseInt(amountInput, 10);
-    if (Number.isNaN(parsedAmount) || parsedAmount <= 0 || !activeType) {
+    if (!activeType || Number.isNaN(parsedAmount) || parsedAmount <= 0) {
       return;
     }
 
@@ -164,6 +185,11 @@ export const HomeScreen = () => {
       if (!selectedCategoryId) {
         return;
       }
+      if (parsedAmount > balance) {
+        Alert.alert('Saldo kurang', 'Nominal pengeluaran melebihi saldo.');
+        return;
+      }
+      await addBalance(-parsedAmount);
       await saveTransaction(selectedCategoryId, parsedAmount, 'OUT');
     }
 
@@ -173,85 +199,125 @@ export const HomeScreen = () => {
 
   const filteredCategories = useMemo(
     () =>
-      categories.filter(category =>
-        category.name !== 'Uang Masuk' &&
-        category.name.toLowerCase().includes(searchText.trim().toLowerCase()),
-      ),
+      categories.filter(item => {
+        const query = searchText.trim().toLowerCase();
+        return item.name !== 'Uang Masuk' && item.name.toLowerCase().includes(query);
+      }),
     [categories, searchText],
   );
 
   return (
-    <View style={styles.container}>
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text variant="titleMedium">Saldo Saat Ini</Text>
-          <Text variant="headlineMedium" style={styles.balanceText}>
-            Rp {balance.toLocaleString('id-ID')}
-          </Text>
-          <Text variant="titleMedium">Total Pengeluaran</Text>
-          <Text variant="headlineSmall" style={styles.totalText}>
-            Rp {total.toLocaleString('id-ID')}
-          </Text>
-          <Text variant="titleMedium">Sisa Uang</Text>
-          <Text
-            variant="headlineSmall"
-            style={[
-              styles.remainingText,
-              remainingMoney < 0 && styles.remainingMinusText,
-            ]}>
-            Rp {remainingMoney.toLocaleString('id-ID')}
-          </Text>
-        </Card.Content>
-      </Card>
+    <View style={styles.root}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Card style={styles.summaryCard} mode="contained">
+          <Card.Content>
+            <Text variant="titleLarge" style={styles.summaryLabel}>
+              Saldo Total
+            </Text>
+            <Text variant="displaySmall" style={styles.balanceText}>
+              Rp {balance.toLocaleString('id-ID')}
+            </Text>
+            <View style={styles.summaryRow}>
+              <View style={styles.summaryItem}>
+                <Avatar.Icon
+                  size={42}
+                  icon="arrow-up"
+                  style={styles.incomeAvatar}
+                  color="#0f9f65"
+                />
+                <View>
+                  <Text style={styles.summaryItemLabel}>PEMASUKAN</Text>
+                  <Text style={styles.summaryIn}>+{(totalIn / 1000000).toFixed(1)}jt</Text>
+                </View>
+              </View>
+              <View style={styles.summaryItem}>
+                <Avatar.Icon
+                  size={42}
+                  icon="arrow-down"
+                  style={styles.expenseAvatar}
+                  color="#ef3d5b"
+                />
+                <View>
+                  <Text style={styles.summaryItemLabel}>PENGELUARAN</Text>
+                  <Text style={styles.summaryOut}>-{(totalOut / 1000000).toFixed(1)}jt</Text>
+                </View>
+              </View>
+            </View>
+          </Card.Content>
+        </Card>
 
-      <View style={styles.buttonRow}>
-        <Button
-          mode="contained"
-          icon="plus-circle"
-          onPress={openInFlow}
-          style={styles.flexBtn}
-          buttonColor="green">
-          Masuk
-        </Button>
-        <View style={styles.gap} />
-        <Button
-          mode="contained-tonal"
-          icon="minus-circle"
-          onPress={openOutFlow}
-          style={styles.flexBtn}
-          buttonColor="red"
-          textColor="white">
-          Keluar
-        </Button>
-      </View>
-
-      <Divider style={styles.divider} />
-
-      <View style={styles.headerRow}>
-        <Text variant="titleMedium">Riwayat Transaksi (10 Terakhir)</Text>
-      </View>
-      <View style={styles.toolsRow}>
-        <Button mode="outlined" onPress={() => navigation.navigate('Categories')}>
-          Kelola Kategori
-        </Button>
-        {history.length > 10 ? (
-          <Button mode="text" onPress={() => navigation.navigate('Transactions')}>
-            Lihat Semua
+        <View style={styles.actionRow}>
+          <Button
+            mode="contained"
+            icon="plus-circle"
+            style={styles.incomeButton}
+            contentStyle={styles.bigButtonContent}
+            labelStyle={styles.bigButtonLabel}
+            onPress={openInFlow}>
+            Pemasukan
           </Button>
-        ) : <View />}
-      </View>
+          <Button
+            mode="outlined"
+            icon="minus-circle"
+            style={styles.expenseButton}
+            contentStyle={styles.bigButtonContent}
+            labelStyle={styles.expenseButtonLabel}
+            onPress={openOutFlow}>
+            Pengeluaran
+          </Button>
+        </View>
 
-      <FlatList
-        data={latestTransactions}
-        keyExtractor={item => item.id.toString()}
-        removeClippedSubviews
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={10}
-        renderItem={({ item }) => (
-          <TransactionListItem item={item} onDelete={handleDelete} />
-        )}
-      />
+        <View style={styles.historyHeader}>
+          <Text variant="headlineMedium" style={styles.historyTitle}>
+            Riwayat Terakhir
+          </Text>
+          {history.length > 10 ? (
+            <Button mode="text" onPress={() => navigation.navigate('Transactions')}>
+              Lihat Semua
+            </Button>
+          ) : null}
+        </View>
+
+        {groupedHistory.map(group => (
+          <View key={group.title} style={styles.groupBlock}>
+            <View style={styles.groupTitleRow}>
+              <Text style={styles.groupTitle}>{group.title}</Text>
+              <Divider style={styles.groupDivider} />
+            </View>
+            {group.data.map(item => {
+              const iconData = mapCategoryStyle(item.category);
+              const date = parseTransactionDate(item.date);
+              return (
+                <Card key={item.id} style={styles.transactionCard} mode="contained">
+                  <Card.Content style={styles.transactionContent}>
+                    <View style={styles.leftInfo}>
+                      <Avatar.Icon
+                        size={44}
+                        icon={iconData.icon}
+                        style={{ backgroundColor: iconData.bg }}
+                        color={iconData.iconColor}
+                      />
+                      <View style={styles.transactionTextWrap}>
+                        <Text style={styles.transactionTitle}>{item.category}</Text>
+                        <Text style={styles.transactionMeta}>
+                          {date.isValid() ? date.format('HH:mm') : '--:--'} • {item.type === 'IN' ? 'Pemasukan' : 'Pengeluaran'}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text
+                      style={[
+                        styles.transactionAmount,
+                        item.type === 'IN' ? styles.amountIn : styles.amountOut,
+                      ]}>
+                      {item.type === 'IN' ? '+' : '-'} Rp {item.amount.toLocaleString('id-ID')}
+                    </Text>
+                  </Card.Content>
+                </Card>
+              );
+            })}
+          </View>
+        ))}
+      </ScrollView>
 
       <Portal>
         <Dialog
@@ -266,24 +332,20 @@ export const HomeScreen = () => {
               onChangeText={setSearchText}
               style={styles.searchbar}
             />
-            <FlatList
-              data={[...filteredCategories, { id: -1, name: 'Lainnya' }]}
-              keyExtractor={item => item.id.toString()}
-              style={styles.categoryList}
-              renderItem={({ item }) => (
-                <List.Item
-                  title={item.name}
-                  onPress={() => {
-                    if (item.id === -1) {
-                      setIsCategoryDialogVisible(false);
-                      setCustomCategoryInput('');
-                      setIsCustomCategoryDialogVisible(true);
-                      return;
-                    }
-                    handleSelectCategory(item);
-                  }}
-                />
-              )}
+            {filteredCategories.map(item => (
+              <List.Item
+                key={item.id}
+                title={item.name}
+                onPress={() => handleSelectCategory(item)}
+              />
+            ))}
+            <List.Item
+              title="Lainnya"
+              onPress={() => {
+                setIsCategoryDialogVisible(false);
+                setCustomCategoryInput('');
+                setIsCustomCategoryDialogVisible(true);
+              }}
             />
           </Dialog.Content>
           <Dialog.Actions>
@@ -315,9 +377,7 @@ export const HomeScreen = () => {
           onDismiss={resetFlowState}
           style={styles.dialog}>
           <Dialog.Title>
-            {activeType === 'IN'
-              ? 'Masukkan Nominal Masuk'
-              : 'Masukkan Nominal Keluar'}
+            {activeType === 'IN' ? 'Masukkan Nominal Pemasukan' : 'Masukkan Nominal Pengeluaran'}
           </Dialog.Title>
           <Dialog.Content>
             {activeType === 'OUT' ? (
@@ -345,34 +405,70 @@ export const HomeScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#f6f6f6' },
-  card: { marginBottom: 20, backgroundColor: '#fff0f0' },
-  balanceText: { fontWeight: 'bold', color: '#1b5e20', marginBottom: 12 },
-  totalText: { fontWeight: 'bold', color: '#b71c1c' },
-  remainingText: { fontWeight: 'bold', color: '#0d47a1' },
-  remainingMinusText: { color: '#d32f2f' },
-  searchbar: { marginBottom: 8 },
-  categoryList: { maxHeight: 240 },
-  buttonRow: {
+  root: { flex: 1, backgroundColor: '#f6f8fb' },
+  container: { padding: 16, paddingBottom: 24 },
+  summaryCard: {
+    borderRadius: 28,
+    backgroundColor: '#f1f3f6',
+    marginBottom: 14,
+  },
+  summaryLabel: { color: '#65778f', marginBottom: 8 },
+  balanceText: { fontWeight: '700', color: '#09122d', marginBottom: 14 },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
+  summaryItem: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  summaryItemLabel: { color: '#8f9cb1', fontSize: 12, fontWeight: '700' },
+  summaryIn: { color: '#0da837', fontWeight: '700', fontSize: 20 },
+  summaryOut: { color: '#ef3d5b', fontWeight: '700', fontSize: 20 },
+  incomeAvatar: { backgroundColor: '#d9f7ea' },
+  expenseAvatar: { backgroundColor: '#ffe5ea' },
+  actionRow: { flexDirection: 'row', gap: 10, marginBottom: 18 },
+  incomeButton: {
+    flex: 1,
+    borderRadius: 28,
+    backgroundColor: '#0da837',
+    shadowColor: '#0da837',
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+  },
+  expenseButton: {
+    flex: 1,
+    borderRadius: 28,
+    borderColor: '#e4e8ee',
+    backgroundColor: '#ffffff',
+  },
+  bigButtonContent: { height: 64 },
+  bigButtonLabel: { fontSize: 16, fontWeight: '700' },
+  expenseButtonLabel: { fontSize: 16, fontWeight: '700', color: '#ef3d5b' },
+  historyHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 15,
-  },
-  flexBtn: { flex: 1 },
-  gap: { width: 10 },
-  divider: { marginVertical: 15 },
-  headerRow: {
-    marginBottom: 6,
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    marginBottom: 8,
   },
-  toolsRow: {
+  historyTitle: { color: '#09122d', fontWeight: '700' },
+  groupBlock: { marginBottom: 14 },
+  groupTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  groupTitle: { color: '#8f9cb1', fontSize: 14, fontWeight: '700', marginRight: 8 },
+  groupDivider: { flex: 1, backgroundColor: '#dde3ec' },
+  transactionCard: {
+    borderRadius: 24,
+    backgroundColor: '#ffffff',
     marginBottom: 10,
+  },
+  transactionContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 12,
   },
+  leftInfo: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 12 },
+  transactionTextWrap: { flexShrink: 1 },
+  transactionTitle: { fontSize: 16, color: '#111729', fontWeight: '700' },
+  transactionMeta: { fontSize: 13, color: '#8f9cb1', marginTop: 2 },
+  transactionAmount: { fontSize: 16, fontWeight: '700' },
+  amountIn: { color: '#0f9f65' },
+  amountOut: { color: '#111729' },
   dialog: { backgroundColor: '#fff' },
+  searchbar: { marginBottom: 8 },
   selectedCategoryText: { marginBottom: 10, color: '#455a64' },
 });

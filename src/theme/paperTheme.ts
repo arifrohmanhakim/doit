@@ -1,11 +1,40 @@
-import { MD3LightTheme } from 'react-native-paper';
+import { MD3LightTheme, configureFonts } from 'react-native-paper';
 
 export const paperTheme = {
   ...MD3LightTheme,
+  fonts: configureFonts({
+    config: {
+      displayLarge: { fontSize: 44, lineHeight: 52, fontWeight: '700' },
+      displayMedium: { fontSize: 38, lineHeight: 46, fontWeight: '700' },
+      displaySmall: { fontSize: 32, lineHeight: 40, fontWeight: '700' },
+      headlineLarge: { fontSize: 28, lineHeight: 36, fontWeight: '700' },
+      headlineMedium: { fontSize: 24, lineHeight: 32, fontWeight: '700' },
+      headlineSmall: { fontSize: 20, lineHeight: 28, fontWeight: '700' },
+      titleLarge: { fontSize: 20, lineHeight: 28, fontWeight: '600' },
+      titleMedium: { fontSize: 16, lineHeight: 24, fontWeight: '600' },
+      titleSmall: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
+      bodyLarge: { fontSize: 16, lineHeight: 24, fontWeight: '400' },
+      bodyMedium: { fontSize: 14, lineHeight: 20, fontWeight: '400' },
+      bodySmall: { fontSize: 12, lineHeight: 18, fontWeight: '400' },
+      labelLarge: { fontSize: 14, lineHeight: 20, fontWeight: '600' },
+      labelMedium: { fontSize: 12, lineHeight: 16, fontWeight: '600' },
+      labelSmall: { fontSize: 11, lineHeight: 16, fontWeight: '600' },
+    },
+  }),
   colors: {
     ...MD3LightTheme.colors,
-    primary: '#3f51b5',
-    secondary: '#f57c00',
-    background: '#f6f6f6',
+    primary: '#0da837',
+    onPrimary: '#ffffff',
+    primaryContainer: '#d9f7e2',
+    onPrimaryContainer: '#052b10',
+    secondary: '#2f9e4d',
+    onSecondary: '#ffffff',
+    secondaryContainer: '#e7f8eb',
+    onSecondaryContainer: '#12371b',
+    tertiary: '#2f7d4f',
+    background: '#f6f8fb',
+    surface: '#ffffff',
+    surfaceVariant: '#eef2f5',
+    outline: '#d7dee7',
   },
 };
