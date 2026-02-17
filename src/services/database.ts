@@ -14,6 +14,8 @@ const DEFAULT_CATEGORIES = [
   'Belanja',
   'Uang Masuk',
 ];
+const DEFAULT_CATEGORY_COLOR = '#8f56e9';
+const DEFAULT_CATEGORY_ICON = 'shape-outline';
 
 const getDBConnection = async (): Promise<SQLiteDatabase> => {
   return SQLite.openDatabase({ name: 'keuangan.db', location: 'default' });
@@ -25,14 +27,48 @@ export const createTable = async (): Promise<void> => {
     `CREATE TABLE IF NOT EXISTS categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+      color TEXT NOT NULL DEFAULT '${DEFAULT_CATEGORY_COLOR}',
+      icon TEXT NOT NULL DEFAULT '${DEFAULT_CATEGORY_ICON}',
       created_at TEXT NOT NULL
     );`,
   );
 
+  const categoryInfo = await db.executeSql('PRAGMA table_info(categories)');
+  const hasColorColumn = Array.from({
+    length: categoryInfo[0].rows.length,
+  }).some((_, index) => {
+    const row = categoryInfo[0].rows.item(index) as { name: string };
+    return row.name === 'color';
+  });
+
+  if (!hasColorColumn) {
+    await db.executeSql(
+      `ALTER TABLE categories ADD COLUMN color TEXT NOT NULL DEFAULT '${DEFAULT_CATEGORY_COLOR}'`,
+    );
+  }
+
+  const hasIconColumn = Array.from({
+    length: categoryInfo[0].rows.length,
+  }).some((_, index) => {
+    const row = categoryInfo[0].rows.item(index) as { name: string };
+    return row.name === 'icon';
+  });
+
+  if (!hasIconColumn) {
+    await db.executeSql(
+      `ALTER TABLE categories ADD COLUMN icon TEXT NOT NULL DEFAULT '${DEFAULT_CATEGORY_ICON}'`,
+    );
+  }
+
   for (const categoryName of DEFAULT_CATEGORIES) {
     await db.executeSql(
-      'INSERT OR IGNORE INTO categories (name, created_at) VALUES (?, ?)',
-      [categoryName, dayjs().toISOString()],
+      'INSERT OR IGNORE INTO categories (name, color, icon, created_at) VALUES (?, ?, ?, ?)',
+      [
+        categoryName,
+        DEFAULT_CATEGORY_COLOR,
+        DEFAULT_CATEGORY_ICON,
+        dayjs().toISOString(),
+      ],
     );
   }
 
@@ -85,11 +121,15 @@ export const createTable = async (): Promise<void> => {
   }
 
   await db.executeSql(
-    `INSERT OR IGNORE INTO categories (name, created_at)
-     SELECT DISTINCT TRIM(category), ?
+    `INSERT OR IGNORE INTO categories (name, color, icon, created_at)
+     SELECT DISTINCT TRIM(category), ?, ?, ?
      FROM transactions
      WHERE category IS NOT NULL AND TRIM(category) <> ''`,
-    [dayjs().toISOString()],
+    [
+      DEFAULT_CATEGORY_COLOR,
+      DEFAULT_CATEGORY_ICON,
+      dayjs().toISOString(),
+    ],
   );
 
   await db.executeSql(
@@ -188,7 +228,13 @@ export const addBalance = async (amount: number): Promise<void> => {
 export const getCategories = async (): Promise<Category[]> => {
   const db = await getDBConnection();
   const results = await db.executeSql(
-    'SELECT id, name FROM categories ORDER BY name ASC',
+    `SELECT
+      id,
+      name,
+      COALESCE(color, '${DEFAULT_CATEGORY_COLOR}') AS color,
+      COALESCE(icon, '${DEFAULT_CATEGORY_ICON}') AS icon
+     FROM categories
+     ORDER BY name ASC`,
   );
   const categories: Category[] = [];
 
@@ -201,13 +247,17 @@ export const getCategories = async (): Promise<Category[]> => {
   return categories;
 };
 
-export const createCategory = async (name: string): Promise<number> => {
+export const createCategory = async (
+  name: string,
+  color = DEFAULT_CATEGORY_COLOR,
+  icon = DEFAULT_CATEGORY_ICON,
+): Promise<number> => {
   const db = await getDBConnection();
   const trimmed = name.trim();
 
   await db.executeSql(
-    'INSERT OR IGNORE INTO categories (name, created_at) VALUES (?, ?)',
-    [trimmed, dayjs().toISOString()],
+    'INSERT OR IGNORE INTO categories (name, color, icon, created_at) VALUES (?, ?, ?, ?)',
+    [trimmed, color.trim() || DEFAULT_CATEGORY_COLOR, icon.trim() || DEFAULT_CATEGORY_ICON, dayjs().toISOString()],
   );
 
   const result = await db.executeSql(
@@ -226,13 +276,25 @@ export const createCategory = async (name: string): Promise<number> => {
 export const updateCategory = async (
   id: number,
   name: string,
+  color?: string,
+  icon?: string,
 ): Promise<void> => {
   const db = await getDBConnection();
   const trimmed = name.trim();
-  await db.executeSql('UPDATE categories SET name = ? WHERE id = ?', [
-    trimmed,
-    id,
-  ]);
+  if (color || icon) {
+    await db.executeSql(
+      'UPDATE categories SET name = ?, color = ?, icon = ? WHERE id = ?',
+      [
+        trimmed,
+        color?.trim() || DEFAULT_CATEGORY_COLOR,
+        icon?.trim() || DEFAULT_CATEGORY_ICON,
+        id,
+      ],
+    );
+    return;
+  }
+
+  await db.executeSql('UPDATE categories SET name = ? WHERE id = ?', [trimmed, id]);
 };
 
 export const deleteCategory = async (id: number): Promise<void> => {

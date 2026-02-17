@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, FlatList, StyleSheet, View } from 'react-native';
 import {
+  Avatar,
   Button,
   Dialog,
+  FAB,
   IconButton,
   List,
   Portal,
@@ -21,7 +23,10 @@ import { Category } from '../types/category';
 export const CategoriesScreen = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState('');
-  const [newCategory, setNewCategory] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryColor, setNewCategoryColor] = useState('#8f56e9');
+  const [newCategoryIcon, setNewCategoryIcon] = useState('shape-outline');
+  const [isCreateVisible, setIsCreateVisible] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
   const [isEditVisible, setIsEditVisible] = useState(false);
@@ -45,13 +50,16 @@ export const CategoriesScreen = () => {
   );
 
   const handleAdd = async () => {
-    const name = newCategory.trim();
+    const name = newCategoryName.trim();
     if (!name) {
       return;
     }
     try {
-      await createCategory(name);
-      setNewCategory('');
+      await createCategory(name, newCategoryColor, newCategoryIcon);
+      setNewCategoryName('');
+      setNewCategoryColor('#8f56e9');
+      setNewCategoryIcon('shape-outline');
+      setIsCreateVisible(false);
       await loadData();
     } catch {
       Alert.alert('Gagal', 'Nama kategori sudah dipakai');
@@ -111,25 +119,22 @@ export const CategoriesScreen = () => {
         style={styles.search}
       />
 
-      <View style={styles.addRow}>
-        <TextInput
-          mode="outlined"
-          label="Kategori baru"
-          value={newCategory}
-          onChangeText={setNewCategory}
-          style={styles.input}
-        />
-        <Button mode="contained" onPress={handleAdd}>
-          Tambah
-        </Button>
-      </View>
-
       <FlatList
         data={filtered}
         keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
           <List.Item
             title={item.name}
+            description={`${item.icon} • ${item.color}`}
+            // eslint-disable-next-line react/no-unstable-nested-components
+            left={() => (
+              <Avatar.Icon
+                size={36}
+                icon={item.icon || 'shape-outline'}
+                style={{ backgroundColor: item.color || '#8f56e9' }}
+                color="#fff"
+              />
+            )}
             // eslint-disable-next-line react/no-unstable-nested-components
             right={() => (
               <View style={styles.actions}>
@@ -147,6 +152,42 @@ export const CategoriesScreen = () => {
       />
 
       <Portal>
+        <Dialog
+          visible={isCreateVisible}
+          onDismiss={() => setIsCreateVisible(false)}
+        >
+          <Dialog.Title>Tambah Kategori</Dialog.Title>
+          <Dialog.Content>
+            <TextInput
+              mode="outlined"
+              label="Nama kategori"
+              value={newCategoryName}
+              onChangeText={setNewCategoryName}
+              style={styles.dialogInput}
+            />
+            <TextInput
+              mode="outlined"
+              label="Warna (HEX)"
+              placeholder="#8f56e9"
+              value={newCategoryColor}
+              onChangeText={setNewCategoryColor}
+              style={styles.dialogInput}
+            />
+            <TextInput
+              mode="outlined"
+              label="Icon"
+              placeholder="shape-outline"
+              value={newCategoryIcon}
+              onChangeText={setNewCategoryIcon}
+              style={styles.dialogInput}
+            />
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setIsCreateVisible(false)}>Batal</Button>
+            <Button onPress={handleAdd}>Simpan</Button>
+          </Dialog.Actions>
+        </Dialog>
+
         <Dialog visible={isEditVisible} onDismiss={() => setIsEditVisible(false)}>
           <Dialog.Title>Edit Kategori</Dialog.Title>
           <Dialog.Content>
@@ -163,6 +204,13 @@ export const CategoriesScreen = () => {
           </Dialog.Actions>
         </Dialog>
       </Portal>
+
+      <FAB
+        icon="plus"
+        label="Tambah Kategori"
+        style={styles.fab}
+        onPress={() => setIsCreateVisible(true)}
+      />
     </View>
   );
 };
@@ -170,8 +218,8 @@ export const CategoriesScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16, backgroundColor: '#f6f6f6' },
   search: { marginBottom: 10 },
-  addRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  input: { flex: 1, marginRight: 8, backgroundColor: 'white' },
   item: { backgroundColor: 'white', borderRadius: 8, marginBottom: 8 },
   actions: { flexDirection: 'row', alignItems: 'center' },
+  dialogInput: { marginBottom: 10, backgroundColor: 'white' },
+  fab: { position: 'absolute', right: 16, bottom: 20 },
 });
