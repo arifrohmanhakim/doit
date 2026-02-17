@@ -14,9 +14,19 @@ export const MainTabsScreen = () => {
   const [index, setIndex] = useState(0);
   const routes = useMemo(
     () => [
-      { key: 'home', title: 'Beranda', focusedIcon: 'home' },
-      { key: 'categories', title: 'Kategori', focusedIcon: 'view-grid' },
-      { key: 'savings', title: 'Tabungan', focusedIcon: 'piggy-bank' },
+      { key: 'home', title: 'Beranda', focusedIcon: 'home', unfocusedIcon: 'home-outline' },
+      {
+        key: 'categories',
+        title: 'Kategori',
+        focusedIcon: 'view-grid',
+        unfocusedIcon: 'view-grid-outline',
+      },
+      {
+        key: 'savings',
+        title: 'Tabungan',
+        focusedIcon: 'piggy-bank',
+        unfocusedIcon: 'piggy-bank-outline',
+      },
     ],
     [],
   );
@@ -33,9 +43,12 @@ export const MainTabsScreen = () => {
       onIndexChange={setIndex}
       renderScene={renderScene}
       labeled
+      compact={false}
+      shifting={false}
       sceneAnimationEnabled
+      sceneAnimationType="opacity"
       barStyle={styles.bar}
-      activeColor="#15b889"
+      activeColor="#0da837"
       inactiveColor="#8b9ab3"
     />
   );

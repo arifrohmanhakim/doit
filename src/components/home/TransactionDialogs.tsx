@@ -1,0 +1,106 @@
+import React from 'react';
+import { Button, Dialog, List, Portal, Searchbar, Text, TextInput } from 'react-native-paper';
+import { Category } from '../../types/category';
+import { homeStyles as styles } from './styles';
+
+type TransactionDialogsProps = {
+  activeType: 'IN' | 'OUT' | null;
+  isCategoryDialogVisible: boolean;
+  isCustomCategoryDialogVisible: boolean;
+  isAmountDialogVisible: boolean;
+  searchText: string;
+  filteredCategories: Category[];
+  customCategoryInput: string;
+  selectedCategoryName: string;
+  amountInput: string;
+  onDismissAll: () => void;
+  onChangeSearch: (value: string) => void;
+  onSelectCategory: (category: Category) => void;
+  onOpenCustomCategory: () => void;
+  onChangeCustomCategory: (value: string) => void;
+  onSubmitCustomCategory: () => void;
+  onChangeAmount: (value: string) => void;
+  onSubmitAmount: () => void;
+};
+
+export const TransactionDialogs = ({
+  activeType,
+  isCategoryDialogVisible,
+  isCustomCategoryDialogVisible,
+  isAmountDialogVisible,
+  searchText,
+  filteredCategories,
+  customCategoryInput,
+  selectedCategoryName,
+  amountInput,
+  onDismissAll,
+  onChangeSearch,
+  onSelectCategory,
+  onOpenCustomCategory,
+  onChangeCustomCategory,
+  onSubmitCustomCategory,
+  onChangeAmount,
+  onSubmitAmount,
+}: TransactionDialogsProps) => (
+  <Portal>
+    <Dialog visible={isCategoryDialogVisible} onDismiss={onDismissAll} style={styles.dialog}>
+      <Dialog.Title>Pilih Kategori Keluar</Dialog.Title>
+      <Dialog.Content>
+        <Searchbar
+          placeholder="Cari kategori..."
+          value={searchText}
+          onChangeText={onChangeSearch}
+          style={styles.searchbar}
+        />
+        {filteredCategories.map(item => (
+          <List.Item key={item.id} title={item.name} onPress={() => onSelectCategory(item)} />
+        ))}
+        <List.Item title="Lainnya" onPress={onOpenCustomCategory} />
+      </Dialog.Content>
+      <Dialog.Actions>
+        <Button onPress={onDismissAll}>Batal</Button>
+      </Dialog.Actions>
+    </Dialog>
+
+    <Dialog visible={isCustomCategoryDialogVisible} onDismiss={onDismissAll} style={styles.dialog}>
+      <Dialog.Title>Masukkan Kategori</Dialog.Title>
+      <Dialog.Content>
+        <TextInput
+          label="Nama kategori"
+          mode="outlined"
+          value={customCategoryInput}
+          onChangeText={onChangeCustomCategory}
+        />
+      </Dialog.Content>
+      <Dialog.Actions>
+        <Button onPress={onDismissAll}>Batal</Button>
+        <Button onPress={onSubmitCustomCategory}>Lanjut</Button>
+      </Dialog.Actions>
+    </Dialog>
+
+    <Dialog visible={isAmountDialogVisible} onDismiss={onDismissAll} style={styles.dialog}>
+      <Dialog.Title>
+        {activeType === 'IN'
+          ? 'Masukkan Nominal Pemasukan'
+          : 'Masukkan Nominal Pengeluaran'}
+      </Dialog.Title>
+      <Dialog.Content>
+        {activeType === 'OUT' ? (
+          <Text style={styles.selectedCategoryText}>Kategori: {selectedCategoryName}</Text>
+        ) : null}
+        <TextInput
+          label="Nominal (Rp)"
+          mode="outlined"
+          keyboardType="numeric"
+          value={amountInput}
+          onChangeText={onChangeAmount}
+          left={<TextInput.Icon icon="cash" />}
+        />
+      </Dialog.Content>
+      <Dialog.Actions>
+        <Button onPress={onDismissAll}>Batal</Button>
+        <Button onPress={onSubmitAmount}>Simpan</Button>
+      </Dialog.Actions>
+    </Dialog>
+  </Portal>
+);
