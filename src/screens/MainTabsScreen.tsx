@@ -14,11 +14,25 @@ type MainTabParamList = {
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-const SavingsScreen = () => (
-  <View style={styles.savingsContainer}>
-    <Text variant="titleMedium">Fitur Tabungan segera hadir</Text>
-  </View>
-);
+const SavingsScreen = () => {
+  const theme = useTheme();
+  const containerStyle = useMemo(
+    () => [styles.savingsContainer, { backgroundColor: theme.colors.background }],
+    [theme.colors.background],
+  );
+  const textStyle = useMemo(
+    () => ({ color: theme.colors.onSurface }),
+    [theme.colors.onSurface],
+  );
+
+  return (
+    <View style={containerStyle}>
+      <Text variant="titleMedium" style={textStyle}>
+        Fitur Tabungan segera hadir
+      </Text>
+    </View>
+  );
+};
 
 export const MainTabsScreen = () => {
   const theme = useTheme();
@@ -127,7 +141,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f6f6f6',
   },
   bar: {
     borderTopWidth: StyleSheet.hairlineWidth,

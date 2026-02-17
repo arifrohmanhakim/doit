@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import { Button, Searchbar, Text, TextInput } from 'react-native-paper';
+import { Button, Searchbar, Text, TextInput, useTheme } from 'react-native-paper';
 import { TransactionListItem } from '../components/TransactionListItem';
 import { createTable, getTransactions } from '../services/database';
 import { Transaction } from '../types/transaction';
@@ -9,6 +9,31 @@ import { toDateKey } from '../utils/date';
 const PAGE_SIZE = 20;
 
 export const TransactionsScreen = () => {
+  const theme = useTheme();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          padding: 16,
+          backgroundColor: theme.colors.background,
+        },
+        filterInput: { marginBottom: 10, backgroundColor: theme.colors.surface },
+        filterActions: {
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 10,
+        },
+        emptyText: {
+          textAlign: 'center',
+          marginTop: 24,
+          color: theme.colors.onSurfaceVariant,
+        },
+        loadMoreButton: { marginVertical: 12 },
+      }),
+    [theme],
+  );
   const [history, setHistory] = useState<Transaction[]>([]);
   const [categoryQuery, setCategoryQuery] = useState('');
   const [dateFilter, setDateFilter] = useState('');
@@ -108,16 +133,3 @@ export const TransactionsScreen = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#f6f6f6' },
-  filterInput: { marginBottom: 10, backgroundColor: 'white' },
-  filterActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  emptyText: { textAlign: 'center', marginTop: 24, color: '#607d8b' },
-  loadMoreButton: { marginVertical: 12 },
-});

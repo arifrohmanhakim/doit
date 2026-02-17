@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import {
   Avatar,
@@ -8,10 +8,11 @@ import {
   Dialog,
   Portal,
   Text,
+  useTheme,
 } from 'react-native-paper';
 import { Transaction } from '../../types/transaction';
 import { parseTransactionDate } from '../../utils/date';
-import { homeStyles as styles } from './styles';
+import { createHomeStyles } from './styles';
 
 type TransactionGroup = {
   title: string;
@@ -45,6 +46,8 @@ export const RecentHistory = ({
   onPressSeeAll,
   onDeleteItem,
 }: RecentHistoryProps) => {
+  const theme = useTheme();
+  const styles = useMemo(() => createHomeStyles(theme), [theme]);
   const [selectedItem, setSelectedItem] = useState<Transaction | null>(null);
 
   const handleCloseDialog = () => setSelectedItem(null);
@@ -81,6 +84,7 @@ export const RecentHistory = ({
           {group.data.map(item => {
             const iconData = mapCategoryStyle(item.category);
             const date = parseTransactionDate(item.date);
+            const iconBackgroundStyle = { backgroundColor: iconData.bg };
             return (
               <Card
                 key={item.id}
@@ -93,7 +97,7 @@ export const RecentHistory = ({
                     <Avatar.Icon
                       size={28}
                       icon={iconData.icon}
-                      style={{ backgroundColor: iconData.bg }}
+                      style={iconBackgroundStyle}
                       color={iconData.iconColor}
                     />
                     <View style={styles.transactionTextWrap}>
@@ -146,7 +150,7 @@ export const RecentHistory = ({
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={handleCloseDialog}>Batal</Button>
-            <Button textColor="#b71c1c" onPress={handleDeleteSelected}>
+            <Button textColor={theme.colors.error} onPress={handleDeleteSelected}>
               Hapus
             </Button>
           </Dialog.Actions>

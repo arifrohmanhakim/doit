@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
+import { useTheme } from 'react-native-paper';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import {
   addBalance,
@@ -21,7 +22,7 @@ import { parseTransactionDate } from '../utils/date';
 import { ActionButtons } from '../components/home/ActionButtons';
 import { RecentHistory } from '../components/home/RecentHistory';
 import { SummaryCard } from '../components/home/SummaryCard';
-import { homeStyles as styles } from '../components/home/styles';
+import { createHomeStyles } from '../components/home/styles';
 import { TransactionDialogs } from '../components/home/TransactionDialogs';
 
 dayjs.extend(customParseFormat);
@@ -29,6 +30,8 @@ dayjs.extend(customParseFormat);
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const HomeScreen = () => {
+  const theme = useTheme();
+  const styles = useMemo(() => createHomeStyles(theme), [theme]);
   const navigation = useNavigation<NavigationProp>();
   const [activeType, setActiveType] = useState<'IN' | 'OUT' | null>(null);
   const [amountInput, setAmountInput] = useState('');

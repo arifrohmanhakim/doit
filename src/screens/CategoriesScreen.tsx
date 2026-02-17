@@ -10,6 +10,7 @@ import {
   Portal,
   Searchbar,
   TextInput,
+  useTheme,
 } from 'react-native-paper';
 import {
   createCategory,
@@ -21,6 +22,27 @@ import {
 import { Category } from '../types/category';
 
 export const CategoriesScreen = () => {
+  const theme = useTheme();
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          padding: 16,
+          backgroundColor: theme.colors.background,
+        },
+        search: { marginBottom: 10 },
+        item: {
+          backgroundColor: theme.colors.surface,
+          borderRadius: 8,
+          marginBottom: 8,
+        },
+        actions: { flexDirection: 'row', alignItems: 'center' },
+        dialogInput: { marginBottom: 10, backgroundColor: theme.colors.surface },
+        fab: { position: 'absolute', right: 16, bottom: 20 },
+      }),
+    [theme],
+  );
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState('');
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -127,21 +149,26 @@ export const CategoriesScreen = () => {
             title={item.name}
             description={`${item.icon} • ${item.color}`}
             // eslint-disable-next-line react/no-unstable-nested-components
-            left={() => (
-              <Avatar.Icon
-                size={36}
-                icon={item.icon || 'shape-outline'}
-                style={{ backgroundColor: item.color || '#8f56e9' }}
-                color="#fff"
-              />
-            )}
+            left={() => {
+              const avatarStyle = {
+                backgroundColor: item.color || theme.colors.primary,
+              };
+              return (
+                <Avatar.Icon
+                  size={36}
+                  icon={item.icon || 'shape-outline'}
+                  style={avatarStyle}
+                  color={theme.colors.onPrimary}
+                />
+              );
+            }}
             // eslint-disable-next-line react/no-unstable-nested-components
             right={() => (
               <View style={styles.actions}>
                 <IconButton icon="pencil" onPress={() => openEdit(item)} />
                 <IconButton
                   icon="delete"
-                  iconColor="#b71c1c"
+                  iconColor={theme.colors.error}
                   onPress={() => handleDelete(item)}
                 />
               </View>
@@ -214,12 +241,3 @@ export const CategoriesScreen = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#f6f6f6' },
-  search: { marginBottom: 10 },
-  item: { backgroundColor: 'white', borderRadius: 8, marginBottom: 8 },
-  actions: { flexDirection: 'row', alignItems: 'center' },
-  dialogInput: { marginBottom: 10, backgroundColor: 'white' },
-  fab: { position: 'absolute', right: 16, bottom: 20 },
-});
