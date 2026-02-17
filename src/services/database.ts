@@ -132,9 +132,10 @@ export const saveTransaction = async (
   categoryId: number,
   amount: number,
   type: TransactionType = 'OUT',
+  dateIso?: string,
 ): Promise<void> => {
   const db = await getDBConnection();
-  const date = dayjs().toISOString();
+  const date = dateIso ?? dayjs().toISOString();
 
   await db.executeSql(
     'INSERT INTO transactions (category_id, amount, date, type) VALUES (?, ?, ?, ?)',

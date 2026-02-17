@@ -13,6 +13,7 @@ type TransactionDialogsProps = {
   customCategoryInput: string;
   selectedCategoryName: string;
   amountInput: string;
+  expenseDateInput: string;
   onDismissAll: () => void;
   onChangeSearch: (value: string) => void;
   onSelectCategory: (category: Category) => void;
@@ -20,6 +21,7 @@ type TransactionDialogsProps = {
   onChangeCustomCategory: (value: string) => void;
   onSubmitCustomCategory: () => void;
   onChangeAmount: (value: string) => void;
+  onChangeExpenseDate: (value: string) => void;
   onSubmitAmount: () => void;
 };
 
@@ -33,6 +35,7 @@ export const TransactionDialogs = ({
   customCategoryInput,
   selectedCategoryName,
   amountInput,
+  expenseDateInput,
   onDismissAll,
   onChangeSearch,
   onSelectCategory,
@@ -40,6 +43,7 @@ export const TransactionDialogs = ({
   onChangeCustomCategory,
   onSubmitCustomCategory,
   onChangeAmount,
+  onChangeExpenseDate,
   onSubmitAmount,
 }: TransactionDialogsProps) => (
   <Portal>
@@ -96,6 +100,16 @@ export const TransactionDialogs = ({
           onChangeText={onChangeAmount}
           left={<TextInput.Icon icon="cash" />}
         />
+        {activeType === 'OUT' ? (
+          <TextInput
+            label="Tanggal (YYYY-MM-DD HH:mm)"
+            mode="outlined"
+            value={expenseDateInput}
+            onChangeText={onChangeExpenseDate}
+            style={styles.expenseDateInput}
+            left={<TextInput.Icon icon="calendar-clock" />}
+          />
+        ) : null}
       </Dialog.Content>
       <Dialog.Actions>
         <Button onPress={onDismissAll}>Batal</Button>

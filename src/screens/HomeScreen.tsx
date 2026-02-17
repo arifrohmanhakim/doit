@@ -3,11 +3,13 @@ import { Alert, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import {
   addBalance,
   createCategory,
   createTable,
+  deleteTransaction,
   getBalance,
   getCategories,
   getTransactions,
@@ -22,12 +24,17 @@ import { SummaryCard } from '../components/home/SummaryCard';
 import { homeStyles as styles } from '../components/home/styles';
 import { TransactionDialogs } from '../components/home/TransactionDialogs';
 
+dayjs.extend(customParseFormat);
+
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [activeType, setActiveType] = useState<'IN' | 'OUT' | null>(null);
   const [amountInput, setAmountInput] = useState('');
+  const [expenseDateInput, setExpenseDateInput] = useState(
+    dayjs().format('YYYY-MM-DD HH:mm'),
+  );
   const [searchText, setSearchText] = useState('');
   const [customCategoryInput, setCustomCategoryInput] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
@@ -112,6 +119,7 @@ export const HomeScreen = () => {
   const resetFlowState = () => {
     setActiveType(null);
     setAmountInput('');
+    setExpenseDateInput(dayjs().format('YYYY-MM-DD HH:mm'));
     setSearchText('');
     setCustomCategoryInput('');
     setSelectedCategoryId(null);
@@ -132,6 +140,7 @@ export const HomeScreen = () => {
     setActiveType('OUT');
     setSelectedCategoryName('');
     setSelectedCategoryId(null);
+    setExpenseDateInput(dayjs().format('YYYY-MM-DD HH:mm'));
     setIsCategoryDialogVisible(true);
   };
 
@@ -180,8 +189,18 @@ export const HomeScreen = () => {
         Alert.alert('Saldo kurang', 'Nominal pengeluaran melebihi saldo.');
         return;
       }
+      const parsedDate = dayjs(expenseDateInput, 'YYYY-MM-DD HH:mm', true);
+      if (!parsedDate.isValid()) {
+        Alert.alert('Tanggal tidak valid', 'Gunakan format YYYY-MM-DD HH:mm');
+        return;
+      }
       await addBalance(-parsedAmount);
-      await saveTransaction(selectedCategoryId, parsedAmount, 'OUT');
+      await saveTransaction(
+        selectedCategoryId,
+        parsedAmount,
+        'OUT',
+        parsedDate.toISOString(),
+      );
     }
 
     resetFlowState();
@@ -197,6 +216,25 @@ export const HomeScreen = () => {
     [categories, searchText],
   );
 
+  const handleDeleteItem = (item: Transaction) => {
+    Alert.alert('Hapus Transaksi', 'Yakin ingin menghapus transaksi ini?', [
+      { text: 'Batal', style: 'cancel' },
+      {
+        text: 'Hapus',
+        style: 'destructive',
+        onPress: async () => {
+          if (item.type === 'IN') {
+            await addBalance(-item.amount);
+          } else {
+            await addBalance(item.amount);
+          }
+          await deleteTransaction(item.id);
+          await loadData();
+        },
+      },
+    ]);
+  };
+
   return (
     <View style={styles.root}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -206,6 +244,7 @@ export const HomeScreen = () => {
           groupedHistory={groupedHistory}
           canSeeAll={history.length > 10}
           onPressSeeAll={() => navigation.navigate('Transactions')}
+          onDeleteItem={handleDeleteItem}
         />
       </ScrollView>
 
@@ -219,6 +258,7 @@ export const HomeScreen = () => {
         customCategoryInput={customCategoryInput}
         selectedCategoryName={selectedCategoryName}
         amountInput={amountInput}
+        expenseDateInput={expenseDateInput}
         onDismissAll={resetFlowState}
         onChangeSearch={setSearchText}
         onSelectCategory={handleSelectCategory}
@@ -226,6 +266,7 @@ export const HomeScreen = () => {
         onChangeCustomCategory={setCustomCategoryInput}
         onSubmitCustomCategory={handleSubmitCustomCategory}
         onChangeAmount={setAmountInput}
+        onChangeExpenseDate={setExpenseDateInput}
         onSubmitAmount={handleSubmitAmount}
       />
     </View>

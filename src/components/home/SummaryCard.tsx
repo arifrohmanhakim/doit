@@ -28,7 +28,7 @@ export const SummaryCard = ({ balance, totalIn, totalOut }: SummaryCardProps) =>
           />
           <View>
             <Text style={styles.summaryItemLabel}>PEMASUKAN</Text>
-            <Text style={styles.summaryIn}>+{(totalIn / 1000000).toFixed(1)}jt</Text>
+            <Text style={styles.summaryIn}>+Rp {totalIn.toLocaleString('id-ID')}</Text>
           </View>
         </View>
         <View style={styles.summaryItem}>
@@ -40,7 +40,7 @@ export const SummaryCard = ({ balance, totalIn, totalOut }: SummaryCardProps) =>
           />
           <View>
             <Text style={styles.summaryItemLabel}>PENGELUARAN</Text>
-            <Text style={styles.summaryOut}>-{(totalOut / 1000000).toFixed(1)}jt</Text>
+            <Text style={styles.summaryOut}>-Rp {totalOut.toLocaleString('id-ID')}</Text>
           </View>
         </View>
       </View>

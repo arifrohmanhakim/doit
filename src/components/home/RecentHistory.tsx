@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Avatar, Button, Card, Divider, Text } from 'react-native-paper';
+import { Avatar, Button, Card, Divider, IconButton, Text } from 'react-native-paper';
 import { Transaction } from '../../types/transaction';
 import { parseTransactionDate } from '../../utils/date';
 import { homeStyles as styles } from './styles';
@@ -14,6 +14,7 @@ type RecentHistoryProps = {
   groupedHistory: TransactionGroup[];
   canSeeAll: boolean;
   onPressSeeAll: () => void;
+  onDeleteItem: (item: Transaction) => void;
 };
 
 const mapCategoryStyle = (name: string) => {
@@ -34,6 +35,7 @@ export const RecentHistory = ({
   groupedHistory,
   canSeeAll,
   onPressSeeAll,
+  onDeleteItem,
 }: RecentHistoryProps) => (
   <>
     <View style={styles.historyHeader}>
@@ -82,6 +84,7 @@ export const RecentHistory = ({
                   {item.type === 'IN' ? '+' : '-'} Rp{' '}
                   {item.amount.toLocaleString('id-ID')}
                 </Text>
+                <IconButton icon="delete" size={20} onPress={() => onDeleteItem(item)} />
               </Card.Content>
             </Card>
           );

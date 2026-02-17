@@ -10,7 +10,11 @@ export const homeStyles = StyleSheet.create({
   },
   summaryLabel: { color: '#65778f', marginBottom: 8 },
   balanceText: { fontWeight: '700', color: '#09122d', marginBottom: 14 },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
   summaryItem: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   summaryItemLabel: { color: '#8f9cb1', fontSize: 12, fontWeight: '700' },
   summaryIn: { color: '#0da837', fontWeight: '700', fontSize: 20 },
@@ -20,7 +24,7 @@ export const homeStyles = StyleSheet.create({
   actionRow: { flexDirection: 'row', gap: 10, marginBottom: 18 },
   incomeButton: {
     flex: 1,
-    borderRadius: 28,
+    borderRadius: 14,
     backgroundColor: '#0da837',
     shadowColor: '#0da837',
     shadowOpacity: 0.25,
@@ -28,13 +32,13 @@ export const homeStyles = StyleSheet.create({
   },
   expenseButton: {
     flex: 1,
-    borderRadius: 28,
-    borderColor: '#e4e8ee',
-    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    borderColor: '#dd314d',
+    backgroundColor: '#ef3d5b',
   },
   bigButtonContent: { height: 64 },
   bigButtonLabel: { fontSize: 16, fontWeight: '700' },
-  expenseButtonLabel: { fontSize: 16, fontWeight: '700', color: '#ef3d5b' },
+  expenseButtonLabel: { fontSize: 16, fontWeight: '700', color: '#fff' },
   historyHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -43,8 +47,17 @@ export const homeStyles = StyleSheet.create({
   },
   historyTitle: { color: '#09122d', fontWeight: '700' },
   groupBlock: { marginBottom: 14 },
-  groupTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-  groupTitle: { color: '#8f9cb1', fontSize: 14, fontWeight: '700', marginRight: 8 },
+  groupTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  groupTitle: {
+    color: '#8f9cb1',
+    fontSize: 14,
+    fontWeight: '700',
+    marginRight: 8,
+  },
   groupDivider: { flex: 1, backgroundColor: '#dde3ec' },
   transactionCard: {
     borderRadius: 24,
@@ -67,4 +80,5 @@ export const homeStyles = StyleSheet.create({
   dialog: { backgroundColor: '#fff' },
   searchbar: { marginBottom: 8 },
   selectedCategoryText: { marginBottom: 10, color: '#455a64' },
+  expenseDateInput: { marginTop: 10 },
 });
