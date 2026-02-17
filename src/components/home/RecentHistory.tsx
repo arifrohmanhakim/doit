@@ -10,6 +10,7 @@ import {
   Text,
   useTheme,
 } from 'react-native-paper';
+import { AnimatedPressable } from '../AnimatedPressable';
 import { Transaction } from '../../types/transaction';
 import { parseTransactionDate } from '../../utils/date';
 import { createHomeStyles } from './styles';
@@ -86,50 +87,51 @@ export const RecentHistory = ({
             const date = parseTransactionDate(item.date);
             const iconBackgroundStyle = { backgroundColor: iconData.bg };
             return (
-              <Card
+              <AnimatedPressable
                 key={item.id}
-                style={styles.transactionCard}
-                mode="contained"
                 onLongPress={() => setSelectedItem(item)}
+                containerStyle={styles.transactionPressable}
               >
-                <Card.Content style={styles.transactionContent}>
-                  <View style={styles.leftInfo}>
-                    <Avatar.Icon
-                      size={28}
-                      icon={iconData.icon}
-                      style={iconBackgroundStyle}
-                      color={iconData.iconColor}
-                    />
-                    <View style={styles.transactionTextWrap}>
+                <Card style={styles.transactionCard} mode="contained">
+                  <Card.Content style={styles.transactionContent}>
+                    <View style={styles.leftInfo}>
+                      <Avatar.Icon
+                        size={28}
+                        icon={iconData.icon}
+                        style={iconBackgroundStyle}
+                        color={iconData.iconColor}
+                      />
+                      <View style={styles.transactionTextWrap}>
+                        <Text
+                          variant="titleMedium"
+                          style={styles.transactionTitle}
+                        >
+                          {item.category}
+                        </Text>
+                        <Text variant="bodyMedium" style={styles.transactionMeta}>
+                          {item.description?.trim() ||
+                            (item.type === 'IN' ? 'Pemasukan' : 'Pengeluaran')}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.rightInfo}>
+                      <Text>
+                        {date.isValid() ? date.format('HH:mm') : '--:--'}
+                      </Text>
                       <Text
                         variant="titleMedium"
-                        style={styles.transactionTitle}
+                        style={[
+                          styles.transactionAmount,
+                          item.type === 'IN' ? styles.amountIn : styles.amountOut,
+                        ]}
                       >
-                        {item.category}
-                      </Text>
-                      <Text variant="bodyMedium" style={styles.transactionMeta}>
-                        {item.description?.trim() ||
-                          (item.type === 'IN' ? 'Pemasukan' : 'Pengeluaran')}
+                        {item.type === 'IN' ? '+' : '-'} Rp{' '}
+                        {item.amount.toLocaleString('id-ID')}
                       </Text>
                     </View>
-                  </View>
-                  <View style={styles.rightInfo}>
-                    <Text>
-                      {date.isValid() ? date.format('HH:mm') : '--:--'}
-                    </Text>
-                    <Text
-                      variant="titleMedium"
-                      style={[
-                        styles.transactionAmount,
-                        item.type === 'IN' ? styles.amountIn : styles.amountOut,
-                      ]}
-                    >
-                      {item.type === 'IN' ? '+' : '-'} Rp{' '}
-                      {item.amount.toLocaleString('id-ID')}
-                    </Text>
-                  </View>
-                </Card.Content>
-              </Card>
+                  </Card.Content>
+                </Card>
+              </AnimatedPressable>
             );
           })}
         </View>

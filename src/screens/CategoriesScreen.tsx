@@ -12,6 +12,7 @@ import {
   TextInput,
   useTheme,
 } from 'react-native-paper';
+import { AnimatedPressable } from '../components/AnimatedPressable';
 import {
   createCategory,
   createTable,
@@ -36,10 +37,12 @@ export const CategoriesScreen = () => {
           backgroundColor: theme.colors.surface,
           borderRadius: 8,
           marginBottom: 8,
+          overflow: 'hidden',
         },
         actions: { flexDirection: 'row', alignItems: 'center' },
         dialogInput: { marginBottom: 10, backgroundColor: theme.colors.surface },
-        fab: { position: 'absolute', right: 16, bottom: 20 },
+        fabWrap: { position: 'absolute', right: 16, bottom: 20, borderRadius: 16 },
+        fab: {},
       }),
     [theme],
   );
@@ -145,36 +148,37 @@ export const CategoriesScreen = () => {
         data={filtered}
         keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => (
-          <List.Item
-            title={item.name}
-            description={`${item.icon} • ${item.color}`}
-            // eslint-disable-next-line react/no-unstable-nested-components
-            left={() => {
-              const avatarStyle = {
-                backgroundColor: item.color || theme.colors.primary,
-              };
-              return (
-                <Avatar.Icon
-                  size={36}
-                  icon={item.icon || 'shape-outline'}
-                  style={avatarStyle}
-                  color={theme.colors.onPrimary}
-                />
-              );
-            }}
-            // eslint-disable-next-line react/no-unstable-nested-components
-            right={() => (
-              <View style={styles.actions}>
-                <IconButton icon="pencil" onPress={() => openEdit(item)} />
-                <IconButton
-                  icon="delete"
-                  iconColor={theme.colors.error}
-                  onPress={() => handleDelete(item)}
-                />
-              </View>
-            )}
-            style={styles.item}
-          />
+          <AnimatedPressable onPress={() => openEdit(item)} containerStyle={styles.item}>
+            <List.Item
+              title={item.name}
+              description={`${item.icon} • ${item.color}`}
+              // eslint-disable-next-line react/no-unstable-nested-components
+              left={() => {
+                const avatarStyle = {
+                  backgroundColor: item.color || theme.colors.primary,
+                };
+                return (
+                  <Avatar.Icon
+                    size={36}
+                    icon={item.icon || 'shape-outline'}
+                    style={avatarStyle}
+                    color={theme.colors.onPrimary}
+                  />
+                );
+              }}
+              // eslint-disable-next-line react/no-unstable-nested-components
+              right={() => (
+                <View style={styles.actions}>
+                  <IconButton icon="pencil" onPress={() => openEdit(item)} />
+                  <IconButton
+                    icon="delete"
+                    iconColor={theme.colors.error}
+                    onPress={() => handleDelete(item)}
+                  />
+                </View>
+              )}
+            />
+          </AnimatedPressable>
         )}
       />
 
@@ -232,12 +236,12 @@ export const CategoriesScreen = () => {
         </Dialog>
       </Portal>
 
-      <FAB
-        icon="plus"
-        label="Tambah Kategori"
-        style={styles.fab}
+      <AnimatedPressable
         onPress={() => setIsCreateVisible(true)}
-      />
+        containerStyle={styles.fabWrap}
+      >
+        <FAB icon="plus" label="Tambah Kategori" style={styles.fab} />
+      </AnimatedPressable>
     </View>
   );
 };

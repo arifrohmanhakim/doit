@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { Button, useTheme } from 'react-native-paper';
+import { AnimatedPressable } from '../AnimatedPressable';
 import { createHomeStyles } from './styles';
 
 type ActionButtonsProps = {
@@ -14,25 +15,27 @@ export const ActionButtons = ({ onPressIn, onPressOut }: ActionButtonsProps) => 
 
   return (
     <View style={styles.actionRow}>
-      <Button
-        mode="contained"
-        icon="plus-circle"
-        style={styles.incomeButton}
-        contentStyle={styles.bigButtonContent}
-        labelStyle={styles.bigButtonLabel}
-        onPress={onPressIn}>
-        Pemasukan
-      </Button>
-      <Button
-        mode="outlined"
-        icon="minus-circle"
-        buttonColor={theme.colors.error}
-        style={styles.expenseButton}
-        contentStyle={styles.bigButtonContent}
-        labelStyle={styles.expenseButtonLabel}
-        onPress={onPressOut}>
-        Pengeluaran
-      </Button>
+      <AnimatedPressable onPress={onPressIn} containerStyle={styles.actionButtonWrap}>
+        <Button
+          mode="contained"
+          icon="plus-circle"
+          style={styles.incomeButton}
+          contentStyle={styles.bigButtonContent}
+          labelStyle={styles.bigButtonLabel}>
+          Pemasukan
+        </Button>
+      </AnimatedPressable>
+      <AnimatedPressable onPress={onPressOut} containerStyle={styles.actionButtonWrap}>
+        <Button
+          mode="outlined"
+          icon="minus-circle"
+          buttonColor={theme.colors.error}
+          style={styles.expenseButton}
+          contentStyle={styles.bigButtonContent}
+          labelStyle={styles.expenseButtonLabel}>
+          Pengeluaran
+        </Button>
+      </AnimatedPressable>
     </View>
   );
 };

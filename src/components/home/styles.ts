@@ -24,8 +24,8 @@ export const createHomeStyles = (theme: MD3Theme) =>
     incomeAvatar: { backgroundColor: theme.colors.primaryContainer },
     expenseAvatar: { backgroundColor: theme.colors.errorContainer },
     actionRow: { flexDirection: 'row', gap: 10, marginBottom: 18 },
+    actionButtonWrap: { flex: 1 },
     incomeButton: {
-      flex: 1,
       borderRadius: 14,
       backgroundColor: theme.colors.primary,
       shadowColor: theme.colors.primary,
@@ -33,7 +33,6 @@ export const createHomeStyles = (theme: MD3Theme) =>
       shadowRadius: 10,
     },
     expenseButton: {
-      flex: 1,
       borderRadius: 14,
       borderColor: theme.colors.error,
       backgroundColor: theme.colors.error,
@@ -61,6 +60,7 @@ export const createHomeStyles = (theme: MD3Theme) =>
       backgroundColor: theme.colors.surface,
       marginBottom: 10,
     },
+    transactionPressable: { borderRadius: 24 },
     transactionContent: {
       flexDirection: 'row',
       alignItems: 'center',
