@@ -1,7 +1,7 @@
 import React from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar, StyleSheet } from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { paperTheme } from './src/theme/paperTheme';
 
@@ -9,13 +9,19 @@ const App = () => (
   <SafeAreaProvider>
     <PaperProvider theme={paperTheme}>
       <StatusBar
-        translucent
+        translucent={false}
         barStyle="dark-content"
-        backgroundColor="transparent"
+        backgroundColor={paperTheme.colors.background}
       />
-      <AppNavigator />
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <AppNavigator />
+      </SafeAreaView>
     </PaperProvider>
   </SafeAreaProvider>
 );
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1 },
+});
 
 export default App;

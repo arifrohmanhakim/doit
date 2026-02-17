@@ -69,6 +69,7 @@ export const homeStyles = StyleSheet.create({
   transactionTextWrap: { flexShrink: 1 },
   transactionTitle: { color: '#111729', fontWeight: '700' },
   transactionMeta: { color: '#8f9cb1', marginTop: 2 },
+  rightInfo: { display: 'flex', alignItems: 'flex-end' },
   transactionAmount: { fontWeight: '700' },
   amountIn: { color: '#0f9f65' },
   amountOut: { color: '#111729' },
